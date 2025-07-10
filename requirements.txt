@@ -1,16 +1,26 @@
+# Core ML libraries
 torch>=1.13.0,<2.0.0
 torchvision>=0.14.0,<0.15.0
 transformers>=4.21.0,<4.31.0
+
+# Image processing
 Pillow>=9.0.0,<10.0.0
-numpy>=1.21.0,<1.25.0
-requests>=2.25.0
 opencv-python>=4.5.0
+numpy>=1.21.0,<1.25.0
+
+# Utilities
+requests>=2.25.0
 scikit-learn>=1.0.0,<=1.0.2
+
+# Computer vision models
 ultralytics>=8.0.0
 timm>=0.6.0
-open-clip-torch>=2.0.0
-accelerate>=0.15.0
-datasets>=2.0.0
+
+# NLP and embeddings
 sentence-transformers>=2.2.0
 huggingface-hub>=0.8.0
-safetensors>=0.2.0
+
+# Optional: Install these separately if needed
+# open-clip-torch>=2.0.0
+# accelerate>=0.15.0
+# datasets>=2.0.0

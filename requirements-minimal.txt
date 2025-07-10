@@ -1,0 +1,12 @@
+torch==1.13.1
+torchvision==0.14.1
+transformers==4.30.2
+Pillow==9.5.0
+numpy==1.21.6
+requests==2.31.0
+opencv-python==4.8.1.78
+scikit-learn==1.0.2
+ultralytics==8.0.196
+timm==0.9.7
+sentence-transformers==2.2.2
+huggingface-hub==0.16.4
