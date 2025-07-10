@@ -1,23 +1,22 @@
-# Advanced Image Tagger for Recommendation Engine
+# Streetwear & Gen Z Fashion Image Tagger
 
-A high-performance Python script optimized for g5.xlarge GPU instances that analyzes images and generates comprehensive tags, categories, and gender classifications for recommendation systems.
+A specialized Python toolkit for analyzing streetwear and Gen Z fashion images, optimized for GPU acceleration and designed for fashion recommendation systems and trend analysis.
 
 ## Features
 
 ### Core Capabilities
-- **Advanced Tag Generation**: Multi-modal tag extraction using state-of-the-art models
-- **Object Detection**: YOLOv8x-based object detection for comprehensive item identification
-- **Category Classification**: 50+ clothing/item categories with high accuracy
-- **Gender Classification**: Nuanced gender classification (male/female/unisex)
-- **Style Analysis**: Detailed style attribute extraction (aesthetic, occasion, fit, design)
-- **Batch Processing**: Optimized for processing multiple images efficiently
+- **Streetwear-Specific Tagging**: Specialized models for streetwear and Gen Z fashion analysis
+- **Multi-Image Product Analysis**: Consensus-based analysis across multiple product images
+- **Brand Detection**: Recognition of popular streetwear and fashion brands
+- **Style Analysis**: Gen Z aesthetics, vibes, fits, and trend classification
+- **Batch Processing**: Efficient processing of large image collections with analytics
+- **Memory Optimization**: Efficient models for coexistence with other ML pipelines
 
 ### AI Models Used
-- **BLIP-2 (2.7B)**: Advanced image captioning and understanding
-- **OpenCLIP (ViT-B-32)**: Superior image-text matching with LAION training
-- **YOLOv8x**: State-of-the-art object detection
-- **Vision Transformer (Large)**: Advanced visual feature extraction
-- **Sentence Transformers**: Semantic similarity analysis
+- **BLIP/BLIP-2**: Image captioning and understanding (configurable model size)
+- **OpenCLIP (ViT-B-32)**: Fashion-optimized image-text matching with LAION training
+- **YOLOv8**: Object detection for clothing items and accessories
+- **Custom Classification**: Streetwear-specific category and style classification
 
 ## Installation
 
@@ -30,77 +29,110 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Single Image Processing
+### Single Image Streetwear Analysis
 
 #### Basic Usage
 ```bash
-python advanced_image_tagger.py path/to/image.jpg
+python streetwear_tagger.py path/to/image.jpg
 ```
 
 #### Verbose Output
 ```bash
-python advanced_image_tagger.py path/to/image.jpg --verbose
+python streetwear_tagger.py path/to/image.jpg --verbose
 ```
 
 #### Save Results
 ```bash
-python advanced_image_tagger.py path/to/image.jpg --output results.json
+python streetwear_tagger.py path/to/image.jpg --output results.json
+```
+
+### Multi-Image Product Analysis
+
+#### Analyze Product with Multiple Images
+```bash
+python multi_image_streetwear_tagger.py image1.jpg image2.jpg image3.jpg --product-id "PROD123"
+```
+
+#### Memory-Efficient Mode
+```bash
+python multi_image_streetwear_tagger.py *.jpg --memory-efficient --output results.json
 ```
 
 ### Batch Processing
 
 #### Process Directory
 ```bash
-python batch_processor.py /path/to/images --output /path/to/results
+python streetwear_batch_processor.py /path/to/images --output /path/to/results
 ```
 
-#### Recursive Processing
+#### Recursive Processing with Report
 ```bash
-python batch_processor.py /path/to/images --recursive --output /path/to/results
+python streetwear_batch_processor.py /path/to/images --recursive --output /path/to/results --report
 ```
 
-#### Generate Report
+#### Custom Worker Threads
 ```bash
-python batch_processor.py /path/to/images --output /path/to/results --report
-```
-
-### Advanced Options
-```bash
-# Disable GPU optimizations
-python advanced_image_tagger.py image.jpg --no-gpu-opt
-
-# Custom worker threads for batch processing
-python batch_processor.py /images --workers 4 --output /results
+python streetwear_batch_processor.py /images --workers 4 --output /results
 ```
 
 ## Example Output
 
+### Single Image Analysis
 ```json
 {
-  "image_path": "sample_dress.jpg",
-  "processing_time": 2.34,
-  "caption": "a woman wearing an elegant blue evening dress with floral patterns",
+  "image_path": "streetwear_hoodie.jpg",
+  "processing_time": 1.82,
+  "caption": "a person wearing an oversized black hoodie with graphic design",
   "detected_objects": [
-    {"class": "person", "confidence": 0.98},
-    {"class": "dress", "confidence": 0.94}
+    {"class": "person", "confidence": 0.95},
+    {"class": "handbag", "confidence": 0.87}
   ],
-  "category": "evening dress",
-  "category_confidence": 0.923,
-  "gender": "female",
-  "gender_confidence": 0.887,
-  "style_attributes": [
-    ["elegant", 0.934],
-    ["formal", 0.876],
-    ["evening", 0.823],
-    ["floral", 0.789],
-    ["fitted", 0.734]
-  ],
-  "all_tags": ["elegant", "formal", "evening", "blue", "floral", "fitted", "dress"],
-  "recommendations": {
-    "primary_tags": ["elegant", "formal", "evening", "blue", "floral", "fitted", "dress"],
-    "style_tags": ["elegant", "formal", "evening", "floral", "fitted"],
-    "category_tags": ["evening dress"],
-    "object_tags": ["dress"]
+  "category": "oversized_hoodie",
+  "category_confidence": 0.891,
+  "gender": "unisex",
+  "gender_confidence": 0.823,
+  "style_analysis": {
+    "aesthetic": {"style": "streetwear", "confidence": 0.934},
+    "vibe": {"style": "casual", "confidence": 0.876},
+    "fit": {"style": "oversized", "confidence": 0.923},
+    "trend": {"style": "layered", "confidence": 0.789}
+  },
+  "detected_brands": ["supreme", "nike"],
+  "colors": ["black", "white", "red"],
+  "tags": ["streetwear", "hoodie", "oversized", "black", "graphic", "casual", "urban"],
+  "streetwear_recommendations": {
+    "primary_category": "oversized_hoodie",
+    "aesthetic": "streetwear",
+    "vibe": "casual",
+    "fit": "oversized",
+    "trend": "layered",
+    "colors": ["black", "white"],
+    "brands": ["supreme", "nike"],
+    "tags": ["streetwear", "hoodie", "oversized", "black", "graphic", "casual", "urban"]
+  }
+}
+```
+
+### Multi-Image Product Analysis
+```json
+{
+  "product_id": "PROD123",
+  "processing_time": 4.56,
+  "total_images": 3,
+  "processed_images": 3,
+  "best_image": "product_front.jpg",
+  "consensus": {
+    "consensus_category": "graphic_tee",
+    "category_confidence": 0.912,
+    "consensus_gender": "unisex",
+    "gender_confidence": 0.845,
+    "consensus_style": {
+      "aesthetic": "y2k",
+      "vibe": "indie",
+      "fit": "oversized"
+    },
+    "detected_brands": ["thrasher"],
+    "comprehensive_tags": ["graphic", "tee", "oversized", "y2k", "indie", "streetwear"]
   }
 }
 ```
@@ -118,37 +150,44 @@ python batch_processor.py /images --workers 4 --output /results
 - **RAM**: 16GB+ system RAM
 - **Storage**: 20GB+ for model weights
 
-## Model Categories
+## Streetwear Categories
 
-### Clothing Types (50+)
-- **Tops**: t-shirt, shirt, blouse, tank top, crop top, sweater, cardigan, hoodie, jacket, blazer, coat
-- **Bottoms**: jeans, pants, trousers, leggings, shorts, skirt, mini skirt, midi skirt, maxi skirt
-- **Dresses**: dress, midi dress, maxi dress, cocktail dress, evening gown
-- **Suits**: suit, jumpsuit, romper, overalls
-- **Footwear**: sneakers, boots, sandals, heels, flats, loafers, athletic shoes
-- **Accessories**: bag, purse, backpack, hat, cap, sunglasses, jewelry, belt, scarf
-- **Intimates**: underwear, bra, lingerie, swimsuit, bikini
-- **Activewear**: athletic wear, yoga pants, sports bra, workout clothes
+### Clothing Types (30+)
+- **Tops**: oversized_hoodie, cropped_hoodie, graphic_tee, oversized_tee, tank_top, long_sleeve, sweatshirt, zip_hoodie
+- **Bottoms**: baggy_jeans, skinny_jeans, cargo_pants, joggers, shorts, wide_leg_pants, leather_pants  
+- **Outerwear**: bomber_jacket, denim_jacket, windbreaker, puffer_jacket, coach_jacket, leather_jacket
+- **Footwear**: sneakers, chunky_sneakers, high_tops, skate_shoes, boots, slides
+- **Accessories**: bucket_hat, beanie, cap, crossbody_bag, backpack, chain_necklace, sunglasses
 
-### Style Attributes
-- **Aesthetic**: minimalist, bohemian, vintage, modern, classic, trendy, elegant, chic
-- **Occasion**: casual, formal, business, cocktail, evening, party, athletic
-- **Fit**: fitted, slim fit, loose, oversized, flowy, structured, tailored
-- **Design**: patterned, striped, floral, solid color, textured, embellished
+### Gen Z Style Analysis
+- **Aesthetics**: y2k, cyber, grunge, dark academia, cottagecore, indie, alt, kawaii, harajuku, minimalist, maximalist, vintage, retro
+- **Vibes**: main character, that girl, clean girl, baddie, soft girl, e-girl, indie sleaze, normcore, gorpcore, academia
+- **Fits**: oversized, baggy, loose, fitted, cropped, high waisted, wide leg, skinny, relaxed, structured
+- **Trends**: layered, matching sets, color blocking, monochromatic, oversized blazer, cargo pants, platform shoes, chunky sneakers
 
-## Gender Classifications
+### Brand Recognition
+- **Streetwear**: Supreme, Off-White, Anti Social Social Club, Golf Wang, Kith, Fear of God, Yeezy, Palace, BAPE, Stussy, Thrasher
+- **Athletic**: Nike, Adidas, Vans, Converse, Champion
 
-- **male**: Masculine clothing styles and men's fashion
-- **female**: Feminine clothing styles and women's fashion
-- **unisex**: Gender-neutral, androgynous, or unisex items
+### Gender Classifications
+- **male**: Masculine streetwear and men's fashion
+- **female**: Feminine streetwear and women's fashion  
+- **unisex**: Gender-neutral streetwear and unisex items
 
 ## Requirements
 
-- Python 3.8+
-- PyTorch 2.0+
+- Python 3.7+
+- PyTorch 1.13+
 - CUDA 11.8+ (for GPU acceleration)
-- 16GB+ GPU memory recommended
+- 8GB+ GPU memory recommended (16GB+ for full models)
 - Internet connection for initial model downloads
+
+## Project Structure
+
+- `streetwear_tagger.py` - Single image streetwear analysis
+- `multi_image_streetwear_tagger.py` - Multi-image product analysis with consensus
+- `streetwear_batch_processor.py` - Batch processing with analytics and reports
+- `requirements.txt` - Python dependencies
 
 ## Batch Processing Features
 
@@ -156,5 +195,6 @@ python batch_processor.py /images --workers 4 --output /results
 - **Progress Tracking**: Real-time processing status
 - **Error Handling**: Robust error handling for corrupted images
 - **CSV Export**: Summary results in CSV format
-- **Detailed Reports**: Comprehensive processing reports
+- **Detailed Reports**: Comprehensive streetwear trend analysis
 - **Memory Management**: Efficient memory usage for large batches
+- **Analytics**: Trend analysis, brand detection, and style insights
