@@ -27,6 +27,20 @@ pip install -r requirements.txt
 
 2. First run will download model weights (~15GB total)
 
+### Troubleshooting Installation
+
+If you encounter package version conflicts:
+
+1. **Python 3.7 compatibility**: The requirements are optimized for Python 3.7-3.9
+2. **Update pip**: Run `pip install --upgrade pip` first
+3. **CUDA compatibility**: Ensure your CUDA version matches PyTorch requirements
+4. **Alternative installation**: Install packages individually if needed:
+   ```bash
+   pip install torch==1.13.1 torchvision==0.14.1
+   pip install transformers==4.30.2
+   pip install ultralytics open-clip-torch sentence-transformers
+   ```
+
 ## Usage
 
 ### Single Image Streetwear Analysis
