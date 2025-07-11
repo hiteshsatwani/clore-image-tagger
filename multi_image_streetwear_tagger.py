@@ -22,7 +22,7 @@ from PIL import Image
 import numpy as np
 from transformers import (
     BlipProcessor, BlipForConditionalGeneration,
-    AutoProcessor, AutoModel,
+    AutoProcessor, Blip2ForConditionalGeneration,
 )
 from ultralytics import YOLO
 import open_clip
@@ -59,7 +59,7 @@ class MultiImageStreetwearTagger:
         else:
             print("Loading BLIP-2 model...")
             self.blip_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b", revision="main")
-            self.blip_model = AutoModel.from_pretrained(
+            self.blip_model = Blip2ForConditionalGeneration.from_pretrained(
                 "Salesforce/blip2-opt-2.7b", 
                 torch_dtype=torch.float16,
                 revision="main"

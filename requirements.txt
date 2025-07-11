@@ -1,7 +1,7 @@
 # Core ML libraries - Python 3.10 compatible
 torch>=1.13.0,<2.1.0
 torchvision>=0.14.0,<0.16.0
-transformers>=4.21.0,<4.36.0
+transformers>=4.21.0
 
 # Image processing
 Pillow>=9.0.0,<10.0.0
