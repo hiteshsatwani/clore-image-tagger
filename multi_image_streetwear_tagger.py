@@ -195,7 +195,7 @@ class MultiImageStreetwearTagger:
         return min(quality_score, 1.0)  # Cap at 1.0
     
     def assess_image_quality_fast(self, img_array: np.ndarray) -> float:
-        \"\"\"Fast image quality assessment using pre-computed array\"\"\"
+        """Fast image quality assessment using pre-computed array"""
         # Convert to grayscale more efficiently
         gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
         
@@ -499,7 +499,7 @@ class MultiImageStreetwearTagger:
         }
     
     def batch_generate_captions(self, images: List[Image.Image]) -> List[str]:
-        \"\"\"Generate captions for multiple images in batch\"\"\"
+        """Generate captions for multiple images in batch"""
         if not images:
             return []
         
@@ -519,7 +519,7 @@ class MultiImageStreetwearTagger:
         return captions
     
     def batch_object_detection(self, images: List[Image.Image]) -> List[List[Dict]]:
-        \"\"\"Run object detection on multiple images\"\"\"
+        """Run object detection on multiple images"""
         if not images:
             return []
         
@@ -540,15 +540,15 @@ class MultiImageStreetwearTagger:
         return all_detected_objects
     
     def batch_classify_category(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
-        \"\"\"Classify categories for multiple images\"\"\"
+        """Classify categories for multiple images"""
         return [self.classify_streetwear_category(img) for img in images]
     
     def batch_classify_gender(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
-        \"\"\"Classify genders for multiple images\"\"\"
+        """Classify genders for multiple images"""
         return [self.classify_streetwear_gender(img) for img in images]
     
     def batch_analyze_style(self, images: List[Image.Image]) -> List[Dict]:
-        \"\"\"Analyze styles for multiple images\"\"\"
+        """Analyze styles for multiple images"""
         return [self.analyze_genz_style(img) for img in images]
 
 
