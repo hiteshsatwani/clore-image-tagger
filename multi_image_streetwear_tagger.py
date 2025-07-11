@@ -65,7 +65,14 @@ class MultiImageStreetwearTagger:
                 revision="main"
             )
         
+        # Enable GPU optimizations
+        if torch.cuda.is_available():
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
+        
         self.blip_model.to(self.device)
+        self.blip_model.eval()  # Set to evaluation mode
         
         # OpenCLIP for classification
         print("Loading OpenCLIP model...")
@@ -187,6 +194,25 @@ class MultiImageStreetwearTagger:
         
         return min(quality_score, 1.0)  # Cap at 1.0
     
+    def assess_image_quality_fast(self, img_array: np.ndarray) -> float:
+        \"\"\"Fast image quality assessment using pre-computed array\"\"\"
+        # Convert to grayscale more efficiently
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        # Simplified quality metrics
+        brightness = np.mean(gray)
+        contrast = np.std(gray)
+        
+        # Fast sharpness approximation using gradient magnitude
+        grad_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        grad_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        sharpness = np.mean(np.sqrt(grad_x**2 + grad_y**2))
+        
+        # Simplified composite score
+        quality_score = (sharpness / 100) + (brightness / 255) + (contrast / 128)
+        
+        return min(quality_score, 1.0)
+    
     def memory_cleanup(self):
         """Cleanup GPU memory between operations"""
         if torch.cuda.is_available():
@@ -198,65 +224,82 @@ class MultiImageStreetwearTagger:
         try:
             image = Image.open(image_path).convert("RGB")
             
-            # Resize if too large (memory optimization)
-            if max(image.size) > 1024:
-                image.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+            # Aggressive resizing for better performance
+            max_size = 512 if self.memory_efficient else 768
+            if max(image.size) > max_size:
+                image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
             
-            cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-            quality_score = self.assess_image_quality(image)
+            # Convert to numpy array more efficiently
+            img_array = np.array(image)
+            cv_image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+            
+            # Quick quality assessment (simplified)
+            quality_score = self.assess_image_quality_fast(img_array)
             
             return image, cv_image, quality_score
             
         except Exception as e:
             raise ValueError(f"Error loading image: {e}")
     
-    def analyze_single_image(self, image_path: str) -> Dict:
-        """Analyze a single image with memory cleanup"""
-        image, cv_image, quality_score = self.preprocess_image(image_path)
+    def analyze_images_batch(self, image_paths: List[str]) -> List[Dict]:
+        """Batch process multiple images for better performance"""
+        results = []
         
-        # Generate caption
-        inputs = self.blip_processor(image, return_tensors="pt").to(self.device)
-        with torch.no_grad():
-            if self.memory_efficient:
-                out = self.blip_model.generate(**inputs, max_length=50)
-                caption = self.blip_processor.decode(out[0], skip_special_tokens=True)
-            else:
-                generated_ids = self.blip_model.generate(**inputs, max_length=50)
-                caption = self.blip_processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        # Preprocess all images
+        print("Preprocessing images...")
+        processed_images = []
+        valid_paths = []
         
-        # Object detection
-        results = self.yolo_model(image, verbose=False)
-        detected_objects = []
-        for result in results:
-            if result.boxes is not None:
-                for box in result.boxes:
-                    detected_objects.append({
-                        'class': result.names[int(box.cls)],
-                        'confidence': float(box.conf)
-                    })
+        for image_path in image_paths:
+            try:
+                image, cv_image, quality_score = self.preprocess_image(image_path)
+                processed_images.append((image, cv_image, quality_score))
+                valid_paths.append(image_path)
+            except Exception as e:
+                print(f"Error preprocessing {image_path}: {e}")
+                continue
         
-        # Classifications
-        category, category_conf = self.classify_streetwear_category(image)
-        gender, gender_conf = self.classify_streetwear_gender(image)
-        style_analysis = self.analyze_genz_style(image)
+        if not processed_images:
+            return []
         
-        # Brand detection
-        detected_brands = self.detect_brands(caption)
+        # Batch caption generation
+        print("Generating captions...")
+        captions = self.batch_generate_captions([img[0] for img in processed_images])
+        
+        # Batch object detection
+        print("Running object detection...")
+        all_detected_objects = self.batch_object_detection([img[0] for img in processed_images])
+        
+        # Batch classifications
+        print("Running classifications...")
+        categories = self.batch_classify_category([img[0] for img in processed_images])
+        genders = self.batch_classify_gender([img[0] for img in processed_images])
+        styles = self.batch_analyze_style([img[0] for img in processed_images])
+        
+        # Compile results
+        for i, (image_path, (image, cv_image, quality_score)) in enumerate(zip(valid_paths, processed_images)):
+            detected_brands = self.detect_brands(captions[i])
+            
+            results.append({
+                "image_path": image_path,
+                "quality_score": round(quality_score, 3),
+                "caption": captions[i],
+                "detected_objects": all_detected_objects[i],
+                "category": categories[i][0],
+                "category_confidence": round(categories[i][1], 3),
+                "gender": genders[i][0],
+                "gender_confidence": round(genders[i][1], 3),
+                "style_analysis": styles[i],
+                "detected_brands": detected_brands
+            })
         
         # Memory cleanup
         self.memory_cleanup()
-        
-        return {
-            "image_path": image_path,
-            "quality_score": round(quality_score, 3),
-            "caption": caption,
-            "detected_objects": detected_objects,
-            "category": category,
-            "category_confidence": round(category_conf, 3),
-            "gender": gender,
-            "gender_confidence": round(gender_conf, 3),
-            "style_analysis": style_analysis,
-            "detected_brands": detected_brands
+        return results
+    
+    def analyze_single_image(self, image_path: str) -> Dict:
+        """Analyze a single image - fallback method"""
+        return self.analyze_images_batch([image_path])[0]
         }
     
     def classify_streetwear_category(self, image: Image.Image) -> Tuple[str, float]:
@@ -416,22 +459,14 @@ class MultiImageStreetwearTagger:
         }
     
     def analyze_product(self, image_paths: List[str], product_id: str = None) -> Dict:
-        """Analyze a product with multiple images"""
+        """Analyze a product with multiple images using batch processing"""
         start_time = time.time()
         product_id = product_id or f"product_{int(time.time())}"
         
         print(f"Analyzing product {product_id} with {len(image_paths)} images...")
         
-        # Analyze individual images
-        individual_results = []
-        for i, image_path in enumerate(image_paths):
-            try:
-                print(f"Processing image {i+1}/{len(image_paths)}: {Path(image_path).name}")
-                result = self.analyze_single_image(image_path)
-                individual_results.append(result)
-            except Exception as e:
-                print(f"Error processing {image_path}: {e}")
-                continue
+        # Use batch processing for better performance
+        individual_results = self.analyze_images_batch(image_paths)
         
         if not individual_results:
             return {"error": "No images could be processed", "product_id": product_id}
@@ -462,6 +497,59 @@ class MultiImageStreetwearTagger:
                 "tags": consensus["comprehensive_tags"]
             }
         }
+    
+    def batch_generate_captions(self, images: List[Image.Image]) -> List[str]:
+        \"\"\"Generate captions for multiple images in batch\"\"\"
+        if not images:
+            return []
+        
+        # Process in smaller batches to avoid memory issues
+        batch_size = 4 if self.memory_efficient else 8
+        captions = []
+        
+        for i in range(0, len(images), batch_size):
+            batch = images[i:i+batch_size]
+            inputs = self.blip_processor(batch, return_tensors=\"pt\", padding=True).to(self.device)
+            
+            with torch.no_grad():
+                generated_ids = self.blip_model.generate(**inputs, max_length=50, do_sample=False)
+                batch_captions = self.blip_processor.batch_decode(generated_ids, skip_special_tokens=True)
+                captions.extend(batch_captions)
+        
+        return captions
+    
+    def batch_object_detection(self, images: List[Image.Image]) -> List[List[Dict]]:
+        \"\"\"Run object detection on multiple images\"\"\"
+        if not images:
+            return []
+        
+        # YOLO can handle batch processing natively
+        results = self.yolo_model(images, verbose=False)
+        
+        all_detected_objects = []
+        for result in results:
+            detected_objects = []
+            if result.boxes is not None:
+                for box in result.boxes:
+                    detected_objects.append({
+                        'class': result.names[int(box.cls)],
+                        'confidence': float(box.conf)
+                    })
+            all_detected_objects.append(detected_objects)
+        
+        return all_detected_objects
+    
+    def batch_classify_category(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
+        \"\"\"Classify categories for multiple images\"\"\"
+        return [self.classify_streetwear_category(img) for img in images]
+    
+    def batch_classify_gender(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
+        \"\"\"Classify genders for multiple images\"\"\"
+        return [self.classify_streetwear_gender(img) for img in images]
+    
+    def batch_analyze_style(self, images: List[Image.Image]) -> List[Dict]:
+        \"\"\"Analyze styles for multiple images\"\"\"
+        return [self.analyze_genz_style(img) for img in images]
 
 
 def main():
