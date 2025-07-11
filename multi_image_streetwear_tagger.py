@@ -508,7 +508,7 @@ class MultiImageStreetwearTagger:
         
         for i in range(0, len(images), batch_size):
             batch = images[i:i+batch_size]
-            inputs = self.blip_processor(batch, return_tensors=\"pt\", padding=True).to(self.device)
+            inputs = self.blip_processor(batch, return_tensors="pt", padding=True).to(self.device)
             
             with torch.no_grad():
                 generated_ids = self.blip_model.generate(**inputs, max_length=50, do_sample=False)
