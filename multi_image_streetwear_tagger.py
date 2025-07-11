@@ -58,10 +58,11 @@ class MultiImageStreetwearTagger:
             )
         else:
             print("Loading BLIP-2 model...")
-            self.blip_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b")
+            self.blip_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b", revision="main")
             self.blip_model = AutoModel.from_pretrained(
                 "Salesforce/blip2-opt-2.7b", 
-                torch_dtype=torch.float16
+                torch_dtype=torch.float16,
+                revision="main"
             )
         
         self.blip_model.to(self.device)
