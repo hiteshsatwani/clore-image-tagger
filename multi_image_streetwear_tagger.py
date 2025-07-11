@@ -300,7 +300,6 @@ class MultiImageStreetwearTagger:
     def analyze_single_image(self, image_path: str) -> Dict:
         """Analyze a single image - fallback method"""
         return self.analyze_images_batch([image_path])[0]
-        }
     
     def classify_streetwear_category(self, image: Image.Image) -> Tuple[str, float]:
         """Classify streetwear category"""
